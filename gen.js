@@ -16,6 +16,9 @@
 //Religion
 //Rural vs Urban -> Major Urban area?
 
+var ethrel = {"Limbu": {"Kirati": 81, "Christianity": 9.5, "Hindu": 9.5}, "Buganda": {"Catholic": 42.5, "Protestant": 42.5, "Muslim": 15}};
+var ethnames = {"unspecified/no answer": "unspecified", "Fon and related": "Fon"};
+
 var countries = data.countries;
 var population = 0;
 var count = 0;
@@ -48,6 +51,39 @@ function findCountry(per){
         }
         count++;
     }
+}
+
+function listEths(){
+    bigethlist = [];
+    count = 0;
+    for (countrya in countries){
+        if(countrya!="world"){
+            try{
+                console.log("country")
+                console.log(countrya);
+                var ethlist = countries[countrya]['data'].people.ethnic_groups["ethnicity"];
+                //console.log(ethlist)
+                for(var i = 0; i < ethlist.length; i++){
+                    //console.log(ethlist[i]["name"]);
+                    //console.log(!(bigethlist.includes(ethlist[i]["name"])));
+                    console.log(ethlist[i]);
+                    if(!(bigethlist.includes(ethlist[i]["name"]))){
+                        //console.log("added")
+                        bigethlist.push(ethlist[i]["name"]);
+                        count++;
+                        
+                        //console.log("added")
+                    }
+                }
+            }
+            catch(error){
+                //console.log("not found is " + countrya)
+                //console.log(error);
+            }
+        }
+    }
+    console.log(bigethlist)
+    console.log(count);
 }
 
 function findAgeBracket(per, country){
@@ -155,14 +191,30 @@ function getEthnicity(perc){
     }
 }
 
-function getReligion(perc){
-    var rlist = countries[country]['data'].people.religions["religion"];
-    for(var i = 0; i < rlist.length; i++){
-        if (perc < rlist[i]["percent"]){
-            return rlist[i]["name"];
+function getReligion(eth, perc){
+    var rlist;
+    if(Object.keys(ethrel).includes(eth)){
+        //console.log("checking ethrel");
+        rlist = ethrel[eth];
+        for(var k in rlist){
+            if (perc < rlist[k]){
+                return k;
+            }
+            else{
+                perc = perc - rlist[k];
+            }
         }
-        else{
-            perc = perc - rlist[i]["percent"];
+    } 
+    else{
+        rlist = countries[country]['data'].people.religions["religion"];
+
+        for(var i = 0; i < rlist.length; i++){
+            if (perc < rlist[i]["percent"]){
+                return rlist[i]["name"];
+            }
+            else{
+                perc = perc - rlist[i]["percent"];
+            }
         }
     }
 }
@@ -355,7 +407,7 @@ function generatePerson(){
     var eth = getEthnicity(ethperc);
 
     var rperc = Math.random() * 100;
-    var rel = getReligion(rperc);
+    var rel = getReligion(eth, rperc);
 
     var urbanperc = Math.random() * 100;
     var urban = getUrban(urbanperc);
@@ -401,10 +453,15 @@ function generatePerson(){
     }
     
     var ethword = capitalizeWord(eth);
+    if(Object.keys(ethnames).includes(eth)){
+        ethword = ethanmes[eth];
+    }
+    
     if(ethword=="Other"){
         ethword = "a minority ethnicity"
     }
 
+    
     var relword = capitalizeWord(rel);
     if(relword.includes("religion")){
         relword = relword.substring(0, relword.indexOf("religion")-1)
@@ -413,6 +470,7 @@ function generatePerson(){
     if(relword=="none"){
         relword = "no"
     }
+    
 
     var agearticle = "a";
     if(age==8||age==11||age==18||(age>79&&age<90)){
@@ -448,3 +506,7 @@ function timer(tim){
 function changePerson(){
     document.getElementById("ptext").innerHTML = generatePerson();
 }
+
+listEths();
+
+//console.log(getReligion("Limbu", 95));
